@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Warehouse • Creative Inventory</title>
+
+  <!-- Webfont + Tailwind + Chart.js (secure CDN) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="icon" href="/favicon.ico" />
+
+  <style>
+    :root{
+      --bg-1: #071526;
+      --bg-2: linear-gradient(135deg,#0ea5a4 0%,#7c3aed 100%);
+      --card: rgba(255,255,255,0.04);
+      --glass: rgba(255,255,255,0.03);
+      --accent: linear-gradient(90deg,#06b6d4,#7c3aed);
+      --muted: rgba(16, 16, 16, 0.7);
+    }
+
+    html,body { height:100%; }
+    body{
+      background: radial-gradient(1000px 400px at 10% 10%, rgba(124,58,237,0.06), transparent 10%),
+                  radial-gradient(800px 300px at 90% 90%, rgba(6,182,212,0.04), transparent 12%),
+                  var(--bg-1);
+      color: #e6eef8;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .nav {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(90deg, rgba(124,58,237,0.95), rgba(6,182,212,0.95));
+      box-shadow: 0 10px 40px rgba(2,6,23,0.6);
+      border-bottom-left-radius: 18px;
+      border-bottom-right-radius: 18px;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.04);
+      padding: 6px 0;
+    }
+
+    /* animated decorative blob behind the nav for a unique look */
+    .nav::after{
+      content: '';
+      position: absolute;
+      right: -12%;
+      top: -40%;
+      width: 520px;
+      height: 520px;
+      background: radial-gradient(circle at 30% 30%, rgba(124,58,237,0.32), transparent 25%), radial-gradient(circle at 70% 70%, rgba(6,182,212,0.22), transparent 20%);
+      filter: blur(36px);
+      transform: rotate(12deg);
+      z-index: 0;
+      pointer-events: none;
+      animation: floatBlob 10s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatBlob{
+      0%{ transform: translateY(0) rotate(6deg) }
+      100%{ transform: translateY(18px) rotate(-6deg) }
+    }
+
+    /* ensure nav content sits above decorative blob */
+    .nav > div { position: relative; z-index: 1; }
+
+    .glass-card {
+      background: linear-gradient(180deg, rgba(238, 231, 231, 0.02), rgba(255,255,255,0.01));
+      border: 1px solid rgba(183, 58, 58, 0.04);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(236, 236, 238, 0.5);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .glass-card:hover { transform: translateY(-6px); box-shadow: 0 22px 48px rgba(2,6,23,0.55); }
+
+    .pill {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px; border-radius:999px; font-weight:700;
+      background: rgba(173, 21, 21, 0.03);
+      border:1px solid rgba(255,255,255,0.03);
+    }
+
+    .muted { color: var(--muted); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight:800;
+      letter-spacing:0.2px;
+      box-shadow: 0 10px 30px rgba(124,58,237,0.12);
+    }
+
+    .btn-primary:hover{ transform: translateY(-3px) scale(1.02); box-shadow: 0 18px 40px rgba(124,58,237,0.18); }
+
+    .btn-ghost:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(2,6,23,0.12); }
+
+    .btn-ghost {
+      background: transparent;
+      border:1px solid rgba(255,255,255,0.06);
+      color: #e6eef8;
+      padding:8px 12px;
+      border-radius:10px;
+    }
+
+    /* Table styles */
+    table { width:100%; border-collapse:collapse; }
+    thead th { text-align:left; padding:10px 12px; color:#cfe9ff; font-weight:700; font-size:13px; }
+    tbody td { padding:10px 12px; border-top:1px dashed rgba(255,255,255,0.03); vertical-align:middle; color:#e6eef8; }
+
+    .low { background: linear-gradient(90deg, rgba(239,68,68,0.06), transparent); border-left:4px solid #ef4444; }
+
+    .q-input { width:80px; padding:8px; border-radius:8px; background:rgba(248, 235, 235, 0.02); border:1px solid rgba(250, 247, 247, 0.04); color:inherit; }
+
+    .small { font-size:13px; }
+    .fade-in { animation:fadeIn .35s ease both; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(6px)} to { opacity:1; transform:none } }
+
+    /* subtle accent shimmer for pill badges */
+    .pill { position: relative; overflow: hidden; }
+    .pill::after{ content:''; position:absolute; left:-60%; top:0; width:40%; height:100%; background: linear-gradient(90deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02)); transform:skewX(-18deg); transition: left 0.8s ease; }
+    .pill:hover::after{ left:120%; }
+
+    /* SEARCH INPUT STYLE */
+    .search {
+      background: rgba(223, 216, 216, 0.02);
+      border: 1px solid rgba(255,255,255,0.04);
+      padding:10px 14px; border-radius:10px; color:inherit;
+    }
+
+    /* ---------- Native select styling (readable and unique) ---------- */
+    select.search {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      padding:10px 14px;
+      border-radius:10px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(240,247,255,0.98));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #9d9ea1;                /* dark, highly readable text */
+      font-weight: 700;
+      box-shadow: 0 6px 20px rgba(2,6,23,0.45);
+      width: 100%;
+    }
+
+    select.search option {
+      background: linear-gradient(180deg, #ffffff 0%, #030303 100%);
+      color: #0f172a;
+      font-weight: 600;
+      padding: 6px 8px;
+    }
+    select.search:focus {
+      outline: none;
+      border-color: rgba(59,130,246,0.9);
+      box-shadow: 0 8px 30px rgba(59,130,246,0.08);
+    }
+
+    /* scrollbar for WebKit */
+    select.search::-webkit-scrollbar,
+    option::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    select.search::-webkit-scrollbar-track,
+    option::-webkit-scrollbar-track {
+      background: linear-gradient(180deg, #f6fbff, #151212);
+      border-radius: 8px;
+    }
+    select.search::-webkit-scrollbar-thumb,
+    option::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg,#7c3aed,#06b6d4);
+      border-radius: 8px;
+      border: 2px solid #8c7575;
+    }
+
+    /* ---------- Custom dropdown styles ---------- */
+    .custom-dd { position: relative; width:100%; }
+    .custom-dd .trigger {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 14px; border-radius:10px; cursor:pointer;
+      background: linear-gradient(90deg,#f9fdfd,#d7dde1);
+      color:#0f172a; font-weight:700; border:1px solid rgba(15,23,42,0.08);
+      box-shadow: 0 10px 30px rgba(2,6,23,0.06);
+    }
+    .custom-dd .trigger .label { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .custom-dd .list {
+      position:absolute; left:0; right:0; top:calc(100% + 10px);
+      background: linear-gradient(180deg,#ffffff,#f6fbff);
+      border-radius:10px; box-shadow: 0 20px 40px rgba(2,6,23,0.25);
+      max-height:320px; overflow:auto; z-index:60; padding:8px;
+      border:1px solid rgba(15,23,42,0.06);
+    }
+    .custom-dd .item {
+      padding:8px 10px; border-radius:8px; cursor:pointer;
+      display:flex; justify-content:space-between; gap:12px; align-items:center;
+      color:#0f172a; font-weight:600;
+    }
+    .custom-dd .item:hover { background: linear-gradient(90deg,#eef6ff,#f4fbff); }
+    .custom-dd .item .meta { color:#d4dce8; font-weight:500; font-size:13px; }
+    .custom-dd .searchbox {
+      display:flex; gap:8px; align-items:center; margin-bottom:8px;
+    }
+    .custom-dd .searchbox input {
+      flex:1; padding:8px 10px; border-radius:8px; border:1px solid rgba(243, 245, 248, 0.06); background:#fff;
+    }
+
+    /* hide native select visually but keep it for accessibility (we keep it in DOM) */
+    .native-hidden {
+      position: absolute !important;
+      left: -9999px !important;
+      width: 1px !important;
+      height: 1px !important;
+      overflow: hidden !important;
+      clip: rect(1px, 1px, 1px, 1px) !important;
+      white-space: nowrap !important;
+    }
+
+    /* small responsive fix */
+    @media (max-width: 640px) {
+      .custom-dd .list { max-height: 220px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <nav class="nav">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center text-2xl">📦</div>
+        <div>
+          <div class="text-lg font-extrabold">Warehouse • Creative Inventory</div>
+          <div class="muted small">Smart dashboard — beautiful & functional</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button id="nav-upload" class="btn-primary">Add Item</button>
+        <button id="nav-purchase" class="btn-ghost">Customer Purchase</button>
+        <button id="nav-receive" class="btn-ghost">Receive Stock</button>
+        <button id="nav-analytics" class="btn-ghost">Analytics</button>
+        <button id="nav-list" class="btn-ghost">View Items</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- BODY -->
+  <main class="max-w-7xl mx-auto px-6 py-10">
+    <!-- Top summary -->
+    <section class="grid md:grid-cols-4 gap-6 mb-8">
+      <div class="glass-card fade-in">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="muted small">Total Items</div>
+            <div id="total-items" class="text-2xl font-bold">0</div>
+          </div>
+          <div class="pill">📦</div>
+        </div>
+      </div>
+
+      <div class="glass-card fade-in">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="muted small">Total Stock Units</div>
+            <div id="total-stock-sum" class="text-2xl font-bold">0</div>
+          </div>
+          <div class="pill">📊</div>
+        </div>
+      </div>
+
+      <div class="glass-card fade-in">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="muted small">Low Stock Alerts</div>
+            <div id="low-stock-count" class="text-2xl font-bold">0</div>
+          </div>
+          <div class="pill">⚠️</div>
+        </div>
+      </div>
+
+      <div class="glass-card fade-in">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="muted small">Records</div>
+            <div id="categories-count" class="text-2xl font-bold">0</div>
+          </div>
+          <div class="pill">📝</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Upload (Add Item) -->
+    <section id="upload-section" class="glass-card mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold">➕ Add New Inventory Item</h3>
+        <div class="muted small">Quickly add stock to your warehouse</div>
+      </div>
+
+      <form id="inventory-form" class="grid md:grid-cols-4 gap-4">
+        <input id="item-id" class="search" placeholder="Item ID (e.g., GROC-021)" required>
+        <input id="item-name" class="search" placeholder="Item Name (e.g., Olive Oil 1L)" required>
+        <input id="total-stock" type="number" min="0" class="search" placeholder="Total stock" required>
+        <input id="reorder-level" type="number" min="0" class="search" placeholder="Reorder level" required>
+        <div class="md:col-span-4 flex justify-end">
+          <button id="submit-btn" class="btn-primary">Add to Inventory</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Customer Purchase (single table) -->
+    <section id="purchase-section" class="glass-card mb-8" style="display:none;">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-lg font-bold">🛒 Customer Purchase</h3>
+          <div class="muted small">Use the table below to remove items from stock</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <input id="purchase-search" placeholder="Search items..." class="search">
+          <button id="refresh-purchase" class="btn-ghost">Refresh</button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full">
+          <thead>
+            <tr>
+              <th>Item ID</th>
+              <th>Item Name</th>
+              <th>Available</th>
+              <th>Reorder</th>
+              <th style="width:150px">Quantity</th>
+              <th style="text-align:center">Action</th>
+            </tr>
+          </thead>
+          <tbody id="purchase-table-body">
+            <!-- rows inserted by JS -->
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-4 muted small">Tip: set quantity then click <strong>Process</strong> to reduce stock.</div>
+    </section>
+
+    <!-- Receive Stock (new) -->
+    <section id="receive-section" class="glass-card mb-8" style="display:none;">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-lg font-bold">📥 Receive Stock</h3>
+          <div class="muted small">Select an existing item and add received quantity to stock.</div>
+        </div>
+        <div class="muted small">Auto-updates inventory — no duplicates</div>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-4 items-end">
+        <!-- Native select (kept hidden visually for accessibility/fallback) -->
+        <select id="receive-select" class="search native-hidden" aria-hidden="false">
+          <!-- options populated by JS as fallback -->
+        </select>
+
+        <!-- Custom dropdown (visible and used by default) -->
+        <div class="custom-dd">
+          <div class="searchbox" style="margin-bottom:6px;">
+            <input id="custom-search-input" placeholder="Search items..." class="search" style="width:100%;"/>
+          </div>
+
+          <div id="custom-trigger" class="trigger" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false">
+            <div class="label muted">-- select item --</div>
+            <div style="opacity:0.8">▾</div>
+          </div>
+
+          <div id="custom-list" class="list" style="display:none;">
+            <!-- searchable list populated by JS -->
+            <div id="custom-items-container"></div>
+          </div>
+        </div>
+
+        <div>
+          <label class="muted small">Quantity received</label>
+          <input id="receive-qty" type="number" min="1" value="1" class="search">
+        </div>
+      </div>
+
+      <div class="mt-4 flex gap-3">
+        <button id="receive-submit" class="btn-primary">Add to Stock</button>
+        <button id="receive-refresh" class="btn-ghost">Refresh Items</button>
+      </div>
+
+      <div id="receive-note" class="mt-4 muted small">
+        Note: If the selected item no longer exists (deleted elsewhere), refresh the list.
+      </div>
+    </section>
+
+    <!-- Analytics -->
+    <section id="analytics-section" class="glass-card mb-8" style="display:none;">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold">📊 Analytics</h3>
+        <div class="muted small">Visual snapshot of stock</div>
+      </div>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="p-4">
+          <canvas id="barChart" style="min-height:220px;"></canvas>
+        </div>
+        <div class="p-4">
+          <canvas id="pieChart" style="min-height:220px;"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Items List -->
+    <section id="list-section" class="glass-card" style="display:none;">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold">📋 Inventory Items</h3>
+        <div class="muted small">Manage items — delete or export</div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full">
+          <thead>
+            <tr>
+              <th>Item ID</th>
+              <th>Item Name</th>
+              <th>Stock</th>
+              <th>Reorder</th>
+              <th>Status</th>
+              <th style="text-align:center">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="items-table-body"></tbody>
+        </table>
+      </div>
+
+      <div class="mt-4 flex justify-between items-center">
+        <div class="muted small">Inventory powered by your local DB</div>
+        <div>
+          <button id="download-csv" class="btn-ghost">Download CSV</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Minimal toast -->
+  <div id="toast-container" style="position:fixed; right:18px; top:18px; z-index:9999"></div>
+
+  <!-- API shim + frontend JS -->
+  <script>
+    // API shim to call /api/items
+    window.apiSdk = {
+      async init(handler) {
+        try {
+          const res = await fetch('/api/items');
+          const json = await res.json();
+          if (json.isOk) {
+            const data = json.data.map((it,i)=>({ ...it, __backendId: it.__backendId || `b-${i+1}` }));
+            handler.onDataChanged(data);
+            return { isOk:true };
+          } else return { isOk:false };
+        } catch(e){
+          console.error(e);
+          return { isOk:false, error: e.message };
+        }
+      },
+      async create(item) {
+        try {
+          const res = await fetch('/api/items', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(item) });
+          return await res.json();
+        } catch(e){ return { isOk:false, error:e.message } }
+      },
+      async update(item) {
+        try {
+          const res = await fetch('/api/items/' + encodeURIComponent(item.__backendId), { method: 'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(item) });
+          return await res.json();
+        } catch(e){ return { isOk:false, error:e.message } }
+      },
+      async delete(item) {
+        try {
+          const res = await fetch('/api/items/' + encodeURIComponent(item.__backendId), { method: 'DELETE' });
+          return await res.json();
+        } catch(e){ return { isOk:false, error:e.message } }
+      }
+    };
+    window.dataSdk = window.apiSdk; // compatibility
+
+    /* ---------- Frontend logic (simpler & purchase table) ---------- */
+
+    // State
+    let allItems = [];
+    let filteredItems = [];
+
+    // Utilities
+    function showToast(msg, type='success') {
+      const el = document.createElement('div');
+      el.className = 'glass-card';
+      el.style.marginBottom = '8px';
+      el.style.minWidth = '200px';
+      el.style.background = type==='success' ? 'linear-gradient(90deg,#06b6d4,#7c3aed)' : '#ef4444';
+      el.style.color = '#fff';
+      el.style.padding = '12px';
+      el.style.borderRadius = '10px';
+      el.textContent = msg;
+      document.getElementById('toast-container').appendChild(el);
+      setTimeout(()=> el.remove(), 3000);
+    }
+
+    // Handler called when API returns data
+    const dataHandler = {
+      onDataChanged(data) {
+        allItems = data.map((it,i)=>({ ...it, __backendId: it.__backendId || `b-${i+1}` }));
+        filteredItems = [...allItems];
+        renderAllViews();
+        // update receive select / custom list whenever data changes
+        populateReceiveSelect();
+        populateCustomList();
+      }
+    };
+
+    // Init
+    (async ()=>{
+      if (window.dataSdk) {
+        const r = await window.dataSdk.init(dataHandler);
+        if (!r.isOk) {
+          showToast('Failed to load backend — using empty dataset', 'error');
+          dataHandler.onDataChanged([]);
+        }
+      } else dataHandler.onDataChanged([]);
+    })();
+
+    // Render everything
+    function renderAllViews(){
+      updateStatistics();
+      renderList();
+      renderPurchaseTable();
+      renderCharts();
+    }
+
+    function updateStatistics(){
+      document.getElementById('total-items').textContent = allItems.length;
+      document.getElementById('total-stock-sum').textContent = allItems.reduce((s,i)=>s + (i.total_stock||0),0);
+      document.getElementById('low-stock-count').textContent = allItems.filter(i=> (i.total_stock||0) <= (i.reorder_level||0)).length;
+      document.getElementById('categories-count').textContent = allItems.length;
+    }
+
+    // Render items list
+    function renderList(){
+      const tbody = document.getElementById('items-table-body'); tbody.innerHTML = '';
+      if (!filteredItems || filteredItems.length===0) {
+        tbody.innerHTML = `<tr><td class="muted small" colspan="6">No items to show</td></tr>`; return;
+      }
+      filteredItems.forEach(it=>{
+        const isLow = (it.total_stock||0) <= (it.reorder_level||0);
+        const tr = document.createElement('tr');
+        if (isLow) tr.classList.add('low');
+        tr.innerHTML = `
+          <td>${it.item_id}</td>
+          <td class="font-bold">${it.item_name}</td>
+          <td class="font-bold">${(it.total_stock||0)}</td>
+          <td>${(it.reorder_level||0)}</td>
+          <td>${isLow?'<span class="pill" style="background:#fee2e2;color:#991b1b">⚠️ Low</span>':'<span class="pill" style="background:#ecfdf5;color:#065f46">✓ In Stock</span>'}</td>
+          <td style="text-align:center"><button class="btn-ghost" data-delete="${it.__backendId}">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // attach delete handlers
+      tbody.querySelectorAll('[data-delete]').forEach(b=>{
+        b.addEventListener('click', async (e)=>{
+          const id = e.currentTarget.dataset.delete;
+          const item = allItems.find(x=>x.__backendId===id);
+          if (!item) return;
+          e.currentTarget.disabled = true; e.currentTarget.textContent = 'Deleting...';
+          const res = await window.dataSdk.delete(item);
+          if (res.isOk) {
+            showToast('Deleted successfully');
+            await window.dataSdk.init(dataHandler);
+          } else {
+            showToast('Failed to delete', 'error');
+            e.currentTarget.disabled = false; e.currentTarget.textContent = 'Delete';
+          }
+        });
+      });
+    }
+
+    // PURCHASE TABLE: single table where each row has quantity input + Process button
+    function renderPurchaseTable(){
+      const tbody = document.getElementById('purchase-table-body'); tbody.innerHTML = '';
+      const q = document.getElementById('purchase-search')?.value?.toLowerCase() || '';
+      const rows = (allItems || []).filter(it => it.item_id.toLowerCase().includes(q) || it.item_name.toLowerCase().includes(q));
+      if (rows.length===0) {
+        tbody.innerHTML = `<tr><td class="muted small" colspan="6">No matching items</td></tr>`; return;
+      }
+      rows.forEach(it=>{
+        const tr = document.createElement('tr');
+        const isLow = (it.total_stock||0) <= (it.reorder_level||0);
+        if (isLow) tr.classList.add('low');
+        const avail = it.total_stock || 0;
+        tr.innerHTML = `
+          <td>${it.item_id}</td>
+          <td class="font-bold">${it.item_name}</td>
+          <td>${avail}</td>
+          <td>${it.reorder_level||0}</td>
+          <td><input class="q-input" type="number" min="1" max="${Math.max(1,avail)}" value="1" id="qty-${it.__backendId}"></td>
+          <td style="text-align:center"><button class="btn-primary" data-purchase="${it.__backendId}">Process</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      // attach purchase handlers
+      tbody.querySelectorAll('[data-purchase]').forEach(b=>{
+        b.addEventListener('click', async (e)=>{
+          const id = e.currentTarget.dataset.purchase;
+          const qtyEl = document.getElementById('qty-' + id);
+          const qty = parseInt(qtyEl.value || '0',10);
+          const item = allItems.find(x=>x.__backendId===id);
+          if (!item) return;
+          if (qty <=0 ) { showToast('Enter valid quantity', 'error'); return; }
+          if (qty > (item.total_stock||0)) { showToast(`Only ${item.total_stock} units available`, 'error'); return; }
+          e.currentTarget.disabled = true; e.currentTarget.textContent = 'Processing...';
+          const updated = { ...item, total_stock: (item.total_stock || 0) - qty };
+          const res = await window.dataSdk.update(updated);
+          if (res.isOk) {
+            showToast(`Processed: ${qty} x ${item.item_name}`);
+            // refresh list
+            await window.dataSdk.init(dataHandler);
+          } else {
+            showToast('Failed to process', 'error');
+            e.currentTarget.disabled = false; e.currentTarget.textContent = 'Process';
+          }
+        });
+      });
+    }
+
+    // Charts (simple)
+    let barChart = null, pieChart = null;
+    function renderCharts(){
+      const ctxBar = document.getElementById('barChart')?.getContext?.('2d');
+      const ctxPie = document.getElementById('pieChart')?.getContext?.('2d');
+      if (!ctxBar || !ctxPie) return;
+
+      const top = [...allItems].sort((a,b)=> (b.total_stock||0) - (a.total_stock||0)).slice(0,8);
+      const labels = top.map(x=>x.item_name);
+      const data = top.map(x=>x.total_stock||0);
+
+      if (barChart) barChart.destroy();
+      barChart = new Chart(ctxBar, {
+        type:'bar',
+        data:{ labels, datasets:[{ label:'Stock', data, borderRadius:6, backgroundColor: ['#06b6d4','#7c3aed','#60a5fa','#34d399','#f59e0b','#ef4444','#a78bfa','#60a5fa'] }]},
+        options:{responsive:true, plugins:{legend:{display:false}}}
+      });
+
+      if (pieChart) pieChart.destroy();
+      pieChart = new Chart(ctxPie, {
+        type:'pie',
+        data:{ labels, datasets:[{ data, backgroundColor:['#06b6d4','#7c3aed','#60a5fa','#34d399','#f59e0b','#ef4444','#a78bfa','#60a5fa'] }]},
+        options:{responsive:true}
+      });
+    }
+
+    // Add item form submit (updated: if item exists, add to stock instead of duplicate)
+    document.getElementById('inventory-form').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const id = document.getElementById('item-id').value.trim();
+      const name = document.getElementById('item-name').value.trim();
+      const totalAdd = parseInt(document.getElementById('total-stock').value || '0',10);
+      const reorder = parseInt(document.getElementById('reorder-level').value || '0',10);
+      if (!id || !name) { showToast('Fill ID & name','error'); return; }
+
+      // Check existing by item_id (case-insensitive)
+      const existing = allItems.find(it => it.item_id.toLowerCase() === id.toLowerCase());
+
+      if (existing) {
+        // update existing stock
+        const updated = {
+          ...existing,
+          total_stock: (existing.total_stock || 0) + (isNaN(totalAdd) ? 0 : totalAdd),
+          reorder_level: reorder || existing.reorder_level
+        };
+        const res = await window.dataSdk.update(updated);
+        if (res.isOk) {
+          showToast(`Stock updated: ${existing.item_name} +${totalAdd}`);
+          document.getElementById('inventory-form').reset();
+          await window.dataSdk.init(dataHandler);
+        } else {
+          showToast('Failed to update stock','error');
+        }
+      } else {
+        const newItem = { item_id: id, item_name: name, total_stock: isNaN(totalAdd) ? 0 : totalAdd, reorder_level: reorder, timestamp: new Date().toISOString() };
+        const res = await window.dataSdk.create(newItem);
+        if (res.isOk) {
+          showToast('Item added');
+          document.getElementById('inventory-form').reset();
+          await window.dataSdk.init(dataHandler);
+        } else {
+          showToast('Failed to add','error');
+        }
+      }
+    });
+
+    /* ---------- Receive Stock (Stock In) feature ---------- */
+
+    // populate native select (fallback) and custom list
+    function populateReceiveSelect(filter='') {
+      const sel = document.getElementById('receive-select');
+      if (!sel) return;
+      sel.innerHTML = '';
+      const items = (allItems || []).filter(it => {
+        if (!filter) return true;
+        const q = filter.toLowerCase();
+        return (it.item_id || '').toLowerCase().includes(q) || (it.item_name || '').toLowerCase().includes(q);
+      });
+
+      if (items.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.textContent = 'No items found';
+        sel.appendChild(opt);
+        // also update custom controls
+        populateCustomList(filter);
+        return;
+      }
+
+      // Sort alphabetically by item_name
+      items.sort((a,b)=> (a.item_name || '').localeCompare(b.item_name || ''));
+
+      // Add placeholder
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = '-- select item --';
+      sel.appendChild(placeholder);
+
+      items.forEach(it => {
+        const opt = document.createElement('option');
+        opt.value = it.__backendId;
+        opt.textContent = `${it.item_id} — ${it.item_name} (avail: ${it.total_stock||0})`;
+        sel.appendChild(opt);
+      });
+
+      // update custom list too
+      populateCustomList(filter);
+    }
+
+    // custom list population
+    function populateCustomList(filter='') {
+      const container = document.getElementById('custom-items-container');
+      const triggerLabel = document.querySelector('#custom-trigger .label');
+      const sel = document.getElementById('receive-select');
+      if (!container || !triggerLabel) return;
+      container.innerHTML = '';
+
+      const items = (allItems || []).filter(it => {
+        if (!filter) return true;
+        const q = filter.toLowerCase();
+        return (it.item_id || '').toLowerCase().includes(q) || (it.item_name || '').toLowerCase().includes(q);
+      });
+
+      if (items.length === 0) {
+        const n = document.createElement('div');
+        n.className = 'item muted';
+        n.textContent = 'No items found';
+        container.appendChild(n);
+        return;
+      }
+
+      items.sort((a,b)=> (a.item_name || '').localeCompare(b.item_name || ''));
+
+      items.forEach(it => {
+        const row = document.createElement('div');
+        row.className = 'item';
+        row.tabIndex = 0;
+        row.dataset.id = it.__backendId;
+        row.innerHTML = `<div>${it.item_id} — ${it.item_name}</div><div class="meta">avail: ${it.total_stock||0}</div>`;
+        row.addEventListener('click', ()=> {
+          // update native select and trigger label
+          if (sel) {
+            sel.value = it.__backendId;
+          }
+          triggerLabel.textContent = `${it.item_id} — ${it.item_name} (avail: ${it.total_stock||0})`;
+          hideCustomList();
+        });
+        // keyboard support
+        row.addEventListener('keydown', (ev)=> {
+          if (ev.key === 'Enter' || ev.key === ' ') {
+            row.click();
+            ev.preventDefault();
+          }
+        });
+        container.appendChild(row);
+      });
+    }
+
+    // custom dropdown behaviors
+    const customTrigger = document.getElementById('custom-trigger');
+    const customList = document.getElementById('custom-list');
+    const customSearch = document.getElementById('custom-search-input');
+
+    function showCustomList() {
+      customList.style.display = 'block';
+      customTrigger.setAttribute('aria-expanded','true');
+      // focus search input
+      customSearch.focus();
+    }
+    function hideCustomList() {
+      customList.style.display = 'none';
+      customTrigger.setAttribute('aria-expanded','false');
+      customTrigger.focus();
+    }
+
+    if (customTrigger) {
+      customTrigger.addEventListener('click', ()=> {
+        if (customList.style.display === 'block') hideCustomList();
+        else showCustomList();
+      });
+      customTrigger.addEventListener('keydown', (e)=> {
+        if (e.key === 'ArrowDown') { showCustomList(); e.preventDefault(); }
+        if (e.key === 'Escape') hideCustomList();
+      });
+    }
+
+    if (customSearch) {
+      customSearch.addEventListener('input', (e)=> {
+        populateCustomList(e.target.value || '');
+        populateReceiveSelect(e.target.value || ''); // keep native select in sync
+      });
+    }
+
+    // click outside closes list
+    document.addEventListener('click', (e)=> {
+      if (!customTrigger || !customList) return;
+      if (!customTrigger.contains(e.target) && !customList.contains(e.target) && e.target !== customSearch) {
+        hideCustomList();
+      }
+    });
+
+    // Refresh items list for receive
+    const receiveRefreshBtn = document.getElementById('receive-refresh');
+    if (receiveRefreshBtn) {
+      receiveRefreshBtn.addEventListener('click', async () => {
+        await window.dataSdk.init(dataHandler);
+        populateReceiveSelect();
+        showToast('Items refreshed');
+      });
+    }
+
+    // Submit receive (add quantity to existing item)
+    const receiveSubmitBtn = document.getElementById('receive-submit');
+    if (receiveSubmitBtn) {
+      receiveSubmitBtn.addEventListener('click', async () => {
+        const sel = document.getElementById('receive-select');
+        const backendId = sel ? sel.value : '';
+        const qty = parseInt(document.getElementById('receive-qty').value || '0', 10);
+
+        if (!backendId) { showToast('Please select an item', 'error'); return; }
+        if (!qty || qty <= 0) { showToast('Enter a valid quantity', 'error'); return; }
+
+        const item = allItems.find(i => i.__backendId === backendId);
+        if (!item) { showToast('Selected item not found, refresh list', 'error'); return; }
+
+        // Compose updated item
+        const updated = { ...item, total_stock: (item.total_stock || 0) + qty };
+
+        const btn = receiveSubmitBtn;
+        btn.disabled = true;
+        const original = btn.textContent;
+        btn.textContent = 'Processing...';
+
+        try {
+          const res = await window.dataSdk.update(updated);
+          if (res.isOk) {
+            showToast(`Received ${qty} units of ${item.item_name}`);
+            await window.dataSdk.init(dataHandler);
+            populateReceiveSelect();
+            populateCustomList();
+            document.getElementById('receive-qty').value = 1;
+          } else {
+            showToast('Failed to update stock', 'error');
+          }
+        } catch (err) {
+          showToast('Error while updating stock', 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = original;
+        }
+      });
+    }
+
+    // Search & nav handlers
+    document.getElementById('purchase-search').addEventListener('input', ()=> renderPurchaseTable());
+    document.getElementById('refresh-purchase').addEventListener('click', ()=> window.dataSdk.init(dataHandler));
+
+    document.getElementById('nav-upload').addEventListener('click', ()=> showSection('upload'));
+    document.getElementById('nav-purchase').addEventListener('click', ()=> showSection('purchase'));
+    document.getElementById('nav-receive').addEventListener('click', ()=> { showSection('receive'); populateReceiveSelect(); populateCustomList(); });
+    document.getElementById('nav-analytics').addEventListener('click', ()=> { showSection('analytics'); renderCharts(); });
+    document.getElementById('nav-list').addEventListener('click', ()=> showSection('list'));
+
+    function showSection(name){
+      document.getElementById('upload-section').style.display = name==='upload' ? 'block' : 'none';
+      document.getElementById('purchase-section').style.display = name==='purchase' ? 'block' : 'none';
+      document.getElementById('receive-section').style.display = name==='receive' ? 'block' : 'none';
+      document.getElementById('analytics-section').style.display = name==='analytics' ? 'block' : 'none';
+      document.getElementById('list-section').style.display = name==='list' ? 'block' : 'none';
+    }
+
+    // CSV download
+    document.getElementById('download-csv').addEventListener('click', ()=>{
+      if (!allItems || allItems.length===0) { showToast('No data to download','error'); return; }
+      const rows = [['item_id','item_name','total_stock','reorder_level','timestamp']];
+      allItems.forEach(it=> rows.push([it.item_id, it.item_name.replace(/"/g,'""'), it.total_stock||0, it.reorder_level||0, it.timestamp||'']));
+      const csv = rows.map(r=> r.map(c=> typeof c==='string' && c.includes(',') ? `"${c}"` : c).join(',')).join('\n');
+      const blob = new Blob([csv], { type:'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'inventory.csv'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    // initial section
+    showSection('upload');
+  </script>
+</body>
+</html>
