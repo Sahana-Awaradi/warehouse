@@ -6,8 +6,8 @@
   <title>Warehouse • Creative Inventory</title>
 
   <!-- Tailwind CDN for quick styling -->
-  <script src="http://cdn.tailwindcss.com"></script>
-  <script src="http://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root{
@@ -16,7 +16,7 @@
       --card: rgba(255,255,255,0.04);
       --glass: rgba(255,255,255,0.03);
       --accent: linear-gradient(90deg,#06b6d4,#7c3aed);
-      --muted: rgba(16, 16, 16, 0.7);
+      --muted: rgba(230,238,248,0.7);
     }
 
     html,body { height:100%; }
@@ -38,11 +38,11 @@
     }
 
     .glass-card {
-      background: linear-gradient(180deg, rgba(238, 231, 231, 0.02), rgba(255,255,255,0.01));
-      border: 1px solid rgba(183, 58, 58, 0.04);
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border: 1px solid rgba(255,255,255,0.04);
       border-radius: 12px;
       padding: 18px;
-      box-shadow: 0 8px 24px rgba(236, 236, 238, 0.5);
+      box-shadow: 0 8px 24px rgba(2,6,23,0.5);
       transition: transform .18s ease, box-shadow .18s ease;
     }
 
@@ -51,7 +51,7 @@
     .pill {
       display:inline-flex; align-items:center; gap:8px;
       padding:8px 12px; border-radius:999px; font-weight:700;
-      background: rgba(173, 21, 21, 0.03);
+      background: rgba(255,255,255,0.03);
       border:1px solid rgba(255,255,255,0.03);
     }
 
@@ -82,110 +82,19 @@
 
     .low { background: linear-gradient(90deg, rgba(239,68,68,0.06), transparent); border-left:4px solid #ef4444; }
 
-    .q-input { width:80px; padding:8px; border-radius:8px; background:rgba(248, 235, 235, 0.02); border:1px solid rgba(250, 247, 247, 0.04); color:inherit; }
+    .q-input { width:80px; padding:8px; border-radius:8px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); color:inherit; }
 
     .small { font-size:13px; }
     .fade-in { animation:fadeIn .35s ease both; }
     @keyframes fadeIn { from { opacity:0; transform:translateY(6px)} to { opacity:1; transform:none } }
 
-    /* SEARCH INPUT STYLE */
     .search {
-      background: rgba(223, 216, 216, 0.02);
+      background: rgba(255,255,255,0.02);
       border: 1px solid rgba(255,255,255,0.04);
       padding:10px 14px; border-radius:10px; color:inherit;
     }
 
-    /* ---------- Native select styling (readable and unique) ---------- */
-    select.search {
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-      padding:10px 14px;
-      border-radius:10px;
-      background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(240,247,255,0.98));
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: #9d9ea1;                /* dark, highly readable text */
-      font-weight: 700;
-      box-shadow: 0 6px 20px rgba(2,6,23,0.45);
-      width: 100%;
-    }
-
-    select.search option {
-      background: linear-gradient(180deg, #ffffff 0%, #030303 100%);
-      color: #0f172a;
-      font-weight: 600;
-      padding: 6px 8px;
-    }
-    select.search:focus {
-      outline: none;
-      border-color: rgba(59,130,246,0.9);
-      box-shadow: 0 8px 30px rgba(59,130,246,0.08);
-    }
-
-    /* scrollbar for WebKit */
-    select.search::-webkit-scrollbar,
-    option::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
-    }
-    select.search::-webkit-scrollbar-track,
-    option::-webkit-scrollbar-track {
-      background: linear-gradient(180deg, #f6fbff, #151212);
-      border-radius: 8px;
-    }
-    select.search::-webkit-scrollbar-thumb,
-    option::-webkit-scrollbar-thumb {
-      background: linear-gradient(180deg,#7c3aed,#06b6d4);
-      border-radius: 8px;
-      border: 2px solid #8c7575;
-    }
-
-    /* ---------- Custom dropdown styles ---------- */
-    .custom-dd { position: relative; width:100%; }
-    .custom-dd .trigger {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:10px 14px; border-radius:10px; cursor:pointer;
-      background: linear-gradient(90deg,#f9fdfd,#d7dde1);
-      color:#0f172a; font-weight:700; border:1px solid rgba(15,23,42,0.08);
-      box-shadow: 0 10px 30px rgba(2,6,23,0.06);
-    }
-    .custom-dd .trigger .label { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .custom-dd .list {
-      position:absolute; left:0; right:0; top:calc(100% + 10px);
-      background: linear-gradient(180deg,#ffffff,#f6fbff);
-      border-radius:10px; box-shadow: 0 20px 40px rgba(2,6,23,0.25);
-      max-height:320px; overflow:auto; z-index:60; padding:8px;
-      border:1px solid rgba(15,23,42,0.06);
-    }
-    .custom-dd .item {
-      padding:8px 10px; border-radius:8px; cursor:pointer;
-      display:flex; justify-content:space-between; gap:12px; align-items:center;
-      color:#0f172a; font-weight:600;
-    }
-    .custom-dd .item:hover { background: linear-gradient(90deg,#eef6ff,#f4fbff); }
-    .custom-dd .item .meta { color:#d4dce8; font-weight:500; font-size:13px; }
-    .custom-dd .searchbox {
-      display:flex; gap:8px; align-items:center; margin-bottom:8px;
-    }
-    .custom-dd .searchbox input {
-      flex:1; padding:8px 10px; border-radius:8px; border:1px solid rgba(243, 245, 248, 0.06); background:#fff;
-    }
-
-    /* hide native select visually but keep it for accessibility (we keep it in DOM) */
-    .native-hidden {
-      position: absolute !important;
-      left: -9999px !important;
-      width: 1px !important;
-      height: 1px !important;
-      overflow: hidden !important;
-      clip: rect(1px, 1px, 1px, 1px) !important;
-      white-space: nowrap !important;
-    }
-
-    /* small responsive fix */
-    @media (max-width: 640px) {
-      .custom-dd .list { max-height: 220px; }
-    }
+    select.search { padding:10px 14px; border-radius:10px; background: rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.04); color:inherit; }
   </style>
 </head>
 <body>
@@ -317,26 +226,16 @@
       </div>
 
       <div class="grid md:grid-cols-3 gap-4 items-end">
-        <!-- Native select (kept hidden visually for accessibility/fallback) -->
-        <select id="receive-select" class="search native-hidden" aria-hidden="false">
-          <!-- options populated by JS as fallback -->
-        </select>
+        <div>
+          <label class="muted small">Select item</label>
+          <select id="receive-select" class="search w-full">
+            <!-- options populated by JS -->
+          </select>
+        </div>
 
-        <!-- Custom dropdown (visible and used by default) -->
-        <div class="custom-dd">
-          <div class="searchbox" style="margin-bottom:6px;">
-            <input id="custom-search-input" placeholder="Search items..." class="search" style="width:100%;"/>
-          </div>
-
-          <div id="custom-trigger" class="trigger" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false">
-            <div class="label muted">-- select item --</div>
-            <div style="opacity:0.8">▾</div>
-          </div>
-
-          <div id="custom-list" class="list" style="display:none;">
-            <!-- searchable list populated by JS -->
-            <div id="custom-items-container"></div>
-          </div>
+        <div>
+          <label class="muted small">Or quick search by ID/name</label>
+          <input id="receive-search" class="search" placeholder="Type item id or name to filter select">
         </div>
 
         <div>
@@ -472,9 +371,8 @@
         allItems = data.map((it,i)=>({ ...it, __backendId: it.__backendId || `b-${i+1}` }));
         filteredItems = [...allItems];
         renderAllViews();
-        // update receive select / custom list whenever data changes
-        populateReceiveSelect();
-        populateCustomList();
+        // update receive select whenever data changes
+        if (document.getElementById('receive-section')) populateReceiveSelect();
       }
     };
 
@@ -659,9 +557,9 @@
       }
     });
 
-    /* ---------- Receive Stock (Stock In) feature ---------- */
+    // ---------- Receive Stock (Stock In) feature ----------
 
-    // populate native select (fallback) and custom list
+    // Populate the select with current items
     function populateReceiveSelect(filter='') {
       const sel = document.getElementById('receive-select');
       if (!sel) return;
@@ -677,8 +575,6 @@
         opt.value = '';
         opt.textContent = 'No items found';
         sel.appendChild(opt);
-        // also update custom controls
-        populateCustomList(filter);
         return;
       }
 
@@ -697,102 +593,15 @@
         opt.textContent = `${it.item_id} — ${it.item_name} (avail: ${it.total_stock||0})`;
         sel.appendChild(opt);
       });
-
-      // update custom list too
-      populateCustomList(filter);
     }
 
-    // custom list population
-    function populateCustomList(filter='') {
-      const container = document.getElementById('custom-items-container');
-      const triggerLabel = document.querySelector('#custom-trigger .label');
-      const sel = document.getElementById('receive-select');
-      if (!container || !triggerLabel) return;
-      container.innerHTML = '';
-
-      const items = (allItems || []).filter(it => {
-        if (!filter) return true;
-        const q = filter.toLowerCase();
-        return (it.item_id || '').toLowerCase().includes(q) || (it.item_name || '').toLowerCase().includes(q);
-      });
-
-      if (items.length === 0) {
-        const n = document.createElement('div');
-        n.className = 'item muted';
-        n.textContent = 'No items found';
-        container.appendChild(n);
-        return;
-      }
-
-      items.sort((a,b)=> (a.item_name || '').localeCompare(b.item_name || ''));
-
-      items.forEach(it => {
-        const row = document.createElement('div');
-        row.className = 'item';
-        row.tabIndex = 0;
-        row.dataset.id = it.__backendId;
-        row.innerHTML = `<div>${it.item_id} — ${it.item_name}</div><div class="meta">avail: ${it.total_stock||0}</div>`;
-        row.addEventListener('click', ()=> {
-          // update native select and trigger label
-          if (sel) {
-            sel.value = it.__backendId;
-          }
-          triggerLabel.textContent = `${it.item_id} — ${it.item_name} (avail: ${it.total_stock||0})`;
-          hideCustomList();
-        });
-        // keyboard support
-        row.addEventListener('keydown', (ev)=> {
-          if (ev.key === 'Enter' || ev.key === ' ') {
-            row.click();
-            ev.preventDefault();
-          }
-        });
-        container.appendChild(row);
+    // Handle search box for select filter
+    const receiveSearchEl = document.getElementById('receive-search');
+    if (receiveSearchEl) {
+      receiveSearchEl.addEventListener('input', (e) => {
+        populateReceiveSelect(e.target.value || '');
       });
     }
-
-    // custom dropdown behaviors
-    const customTrigger = document.getElementById('custom-trigger');
-    const customList = document.getElementById('custom-list');
-    const customSearch = document.getElementById('custom-search-input');
-
-    function showCustomList() {
-      customList.style.display = 'block';
-      customTrigger.setAttribute('aria-expanded','true');
-      // focus search input
-      customSearch.focus();
-    }
-    function hideCustomList() {
-      customList.style.display = 'none';
-      customTrigger.setAttribute('aria-expanded','false');
-      customTrigger.focus();
-    }
-
-    if (customTrigger) {
-      customTrigger.addEventListener('click', ()=> {
-        if (customList.style.display === 'block') hideCustomList();
-        else showCustomList();
-      });
-      customTrigger.addEventListener('keydown', (e)=> {
-        if (e.key === 'ArrowDown') { showCustomList(); e.preventDefault(); }
-        if (e.key === 'Escape') hideCustomList();
-      });
-    }
-
-    if (customSearch) {
-      customSearch.addEventListener('input', (e)=> {
-        populateCustomList(e.target.value || '');
-        populateReceiveSelect(e.target.value || ''); // keep native select in sync
-      });
-    }
-
-    // click outside closes list
-    document.addEventListener('click', (e)=> {
-      if (!customTrigger || !customList) return;
-      if (!customTrigger.contains(e.target) && !customList.contains(e.target) && e.target !== customSearch) {
-        hideCustomList();
-      }
-    });
 
     // Refresh items list for receive
     const receiveRefreshBtn = document.getElementById('receive-refresh');
@@ -832,7 +641,6 @@
             showToast(`Received ${qty} units of ${item.item_name}`);
             await window.dataSdk.init(dataHandler);
             populateReceiveSelect();
-            populateCustomList();
             document.getElementById('receive-qty').value = 1;
           } else {
             showToast('Failed to update stock', 'error');
@@ -852,7 +660,7 @@
 
     document.getElementById('nav-upload').addEventListener('click', ()=> showSection('upload'));
     document.getElementById('nav-purchase').addEventListener('click', ()=> showSection('purchase'));
-    document.getElementById('nav-receive').addEventListener('click', ()=> { showSection('receive'); populateReceiveSelect(); populateCustomList(); });
+    document.getElementById('nav-receive').addEventListener('click', ()=> { showSection('receive'); populateReceiveSelect(); });
     document.getElementById('nav-analytics').addEventListener('click', ()=> { showSection('analytics'); renderCharts(); });
     document.getElementById('nav-list').addEventListener('click', ()=> showSection('list'));
 
